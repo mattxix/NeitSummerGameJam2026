@@ -12,11 +12,20 @@ public class MenuScripts : MonoBehaviour
 
     public void Win()
     {
-        SceneManager.LoadScene(mainMenuScene);
+        SceneManager.LoadScene(0);
     }
 
     public void Lose()
     {
-        SceneManager.LoadScene(gameScene);
+        SceneManager.LoadScene(0);
+    }
+
+    public void Start()
+    {
+        SceneManager.LoadScene(1);
+    }
+    public void Exit()
+    {
+        Application.Quit();
     }
 }
