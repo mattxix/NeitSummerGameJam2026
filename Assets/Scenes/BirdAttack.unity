@@ -320,7 +320,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1265294464}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-
 --- !u!1001 &346582723
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -399,7 +398,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1507636620937791777, guid: 7097ba7ba649e1f41bba232312bdcbd8, type: 3}
   m_PrefabInstance: {fileID: 346582723}
   m_PrefabAsset: {fileID: 0}
-
+--- !u!1 &500154721
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 500154722}
+  m_Layer: 0
+  m_Name: SceneManger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &500154722
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500154721}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.70157, y: -0, z: 5.54989}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &796924854
 GameObject:
   m_ObjectHideFlags: 0
@@ -1539,7 +1568,7 @@ MonoBehaviour:
   minHoverDuration: 0.2
   leftArmPrefab: {fileID: 9135607863138040132, guid: 00a6d5807ac950f409e3ad5c355870d1, type: 3}
   rightArmPrefab: {fileID: 8065178694649271894, guid: 737e3b7d43db77740a9f1343675177ca, type: 3}
-armOrigin: {fileID: 275322982}
+  armOrigin: {fileID: 275322982}
   leftArmOrigin: {fileID: 0}
   rightArmOrigin: {fileID: 0}
   maxReach: 3
@@ -1549,11 +1578,11 @@ armOrigin: {fileID: 275322982}
   desiredArmLength: 0.55
   overridePunchAxis: 0
   punchAxisOverride: {x: 0, y: 0, z: 1}
-  punchOutDuration: 0.1
-  punchReturnDuration: 0.12
+  punchOutDuration: 0.09
+  punchReturnDuration: 0.18
   extraPunchCooldown: 0
   punchRange: 3.5
-  punchAngle: 53
+  punchAngle: 45
   feathersPrefab: {fileID: 7095192495396013245, guid: 799252f1334a7cd49a7a2efc5497ec27, type: 3}
   feathersOffsetTowardPlayer: 0.1
   feathersLifetime: 3
@@ -3379,3 +3408,4 @@ SceneRoots:
   - {fileID: 818612496}
   - {fileID: 1198025697}
   - {fileID: 6697477974475270720}
+  - {fileID: 500154722}
