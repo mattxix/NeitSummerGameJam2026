@@ -1,7 +1,9 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -193,16 +195,18 @@ public class SandwichEater : MonoBehaviour
     }
 
     /// <summary>Advances the level counter and resets the plate.</summary>
-    public void StartNextLevel()
+    
+
+    private IEnumerator LoadAfterDelay(float delay)
     {
-        currentLevel++;
-        BeginLevel();
+        yield return new WaitForSeconds(delay);
+        SceneManager.LoadScene(0);
     }
 
     /// <summary>Replays the current level.</summary>
     public void RestartLevel()
     {
-        BeginLevel();
+        StartCoroutine(LoadAfterDelay(5f));
     }
 
     // ---- Losing ----
@@ -240,6 +244,7 @@ public class SandwichEater : MonoBehaviour
         }
 
         onSandwichStolen?.Invoke();
+        RestartLevel();
     }
 
     // ---- State transitions ----
@@ -289,6 +294,7 @@ public class SandwichEater : MonoBehaviour
         SetActive(winLabel, true);
         State = EatState.Finished;
         onLevelComplete?.Invoke();
+        RestartLevel();
     }
 
     // ---- Chewing ----
