@@ -2,6 +2,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Spawns seagulls from the left and right, scales difficulty with the level,
+/// handles punching (left mouse), and drives the punch indicator.
+///
+/// The punch indicator shows only when you're looking left or right AND a gull is
+/// actually in punch range. Facing the sandwich shows nothing -- the spawn sound is
+/// your only cue that a bird is coming.
+///
+/// A connecting punch bursts feathers at the gull. The arm spawns at its Arm Origin,
+/// flies to the target gull's transform and back, then despawns.
+///
+/// Attach to an empty GameObject in the scene.
+/// </summary>
 public class SeagullSystem : MonoBehaviour
 {
     [Header("References")]
@@ -66,6 +79,12 @@ public class SeagullSystem : MonoBehaviour
     public float feathersOffsetTowardPlayer = 0.1f;
     [Tooltip("Fallback lifetime, used only if the prefab has no ParticleSystem to measure.")]
     public float feathersLifetime = 3f;
+
+    [Header("Punch Events")]
+    [Tooltip("Fires on every click that throws a punch, hit or miss.")]
+    public UnityEngine.Events.UnityEvent onPunchThrown;
+    [Tooltip("Fires only when the punch actually connects with a gull.")]
+    public UnityEngine.Events.UnityEvent onPunchLanded;
 
     [Header("Punch Indicator")]
     [Tooltip("Screen-space object shown while a gull is punchable. Hidden otherwise.")]
@@ -231,11 +250,13 @@ public class SeagullSystem : MonoBehaviour
 
         Seagull target = FindPunchableTarget();
         ThrowPunch(UseLeftArm(), target);
+        onPunchThrown?.Invoke();
 
         if (target != null && playerCamera != null)
         {
             target.Punch(playerCamera.transform.position);
             SpawnFeathers(target.transform.position);
+            onPunchLanded?.Invoke();
         }
     }
 

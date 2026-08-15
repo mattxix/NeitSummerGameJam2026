@@ -398,6 +398,104 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1507636620937791777, guid: 7097ba7ba649e1f41bba232312bdcbd8, type: 3}
   m_PrefabInstance: {fileID: 346582723}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &392248314
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 392248316}
+  - component: {fileID: 392248315}
+  m_Layer: 0
+  m_Name: GameAudio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &392248315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 392248314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6445cd47f89be4147a6324370b6a3855, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameAudio
+  source: {fileID: 0}
+  masterVolume: 1
+  bite:
+    clips:
+    - {fileID: 8300000, guid: 33f63a85664e6c241b45e6d4fa1bb8c2, type: 3}
+    - {fileID: 8300000, guid: 8d8e4005204bb9a48a921518f4265746, type: 3}
+    - {fileID: 8300000, guid: 8d02add28e0c3364eac2d713e12f6b17, type: 3}
+    volume: 1
+    pitchRange: {x: 0.95, y: 1.05}
+  chew:
+    clips:
+    - {fileID: 8300000, guid: d79ec50c21f81ef4981379c38e6d9fc0, type: 3}
+    - {fileID: 8300000, guid: aaf40a369d641294f991096e5bd9ec74, type: 3}
+    - {fileID: 8300000, guid: 54fdb9b9caafa5342a4437e0d1843646, type: 3}
+    - {fileID: 8300000, guid: 5594a40a9c4b8ef439247dc6650eeb7f, type: 3}
+    - {fileID: 8300000, guid: 25aa1aaf562d7724e923243517b6d294, type: 3}
+    volume: 1
+    pitchRange: {x: 0.95, y: 1.05}
+  gulp:
+    clips:
+    - {fileID: 8300000, guid: 8281da4f548fc1f4c960dd7662abb7b0, type: 3}
+    - {fileID: 8300000, guid: ea69c6087d7fb72488196f1acf5b654f, type: 3}
+    - {fileID: 8300000, guid: db891f4b1371d3b409d7ebb9879af3d8, type: 3}
+    volume: 1
+    pitchRange: {x: 0.95, y: 1.05}
+  punch:
+    clips:
+    - {fileID: 8300000, guid: a235f4b076ba27f49bd0a8926a9dcadc, type: 3}
+    - {fileID: 8300000, guid: c28675c9d16f4594485539f810ff8515, type: 3}
+    - {fileID: 8300000, guid: 67438e7a766de8942bd81e9dd68cd421, type: 3}
+    volume: 1
+    pitchRange: {x: 0.95, y: 1.05}
+  win:
+    clips:
+    - {fileID: 8300000, guid: 075b1cc2ed4feca42800ffdd73abefcd, type: 3}
+    volume: 1
+    pitchRange: {x: 0.95, y: 1.05}
+  lose:
+    clips:
+    - {fileID: 8300000, guid: 03516b99b42e6374e9312650f0ff1482, type: 3}
+    - {fileID: 8300000, guid: bf5e2e16578903249b40736d2855803a, type: 3}
+    volume: 1
+    pitchRange: {x: 0.95, y: 1.05}
+  intro:
+    clips:
+    - {fileID: 8300000, guid: 1ee6dc8cf35ecef4b8934afacc1d5b19, type: 3}
+    - {fileID: 8300000, guid: 2d2b90e281425d843ac60fafb440dd90, type: 3}
+    volume: 1
+    pitchRange: {x: 0.95, y: 1.05}
+  playIntroOnStart: 1
+  introDelay: 0
+  musicClip: {fileID: 8300000, guid: 8990ac72bc44be24ebfe13b4f1c81d06, type: 3}
+  playMusicOnStart: 1
+  musicVolume: 0.35
+--- !u!4 &392248316
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 392248314}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.70157, y: -0, z: 5.54989}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &500154721
 GameObject:
   m_ObjectHideFlags: 0
@@ -1527,16 +1625,64 @@ MonoBehaviour:
   eatKey: 1
   onBiteTaken:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 392248315}
+        m_TargetAssemblyTypeName: GameAudio, Assembly-CSharp
+        m_MethodName: PlayBite
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   onChewPress:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 392248315}
+        m_TargetAssemblyTypeName: GameAudio, Assembly-CSharp
+        m_MethodName: PlayChew
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   onLevelComplete:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 392248315}
+        m_TargetAssemblyTypeName: GameAudio, Assembly-CSharp
+        m_MethodName: PlayWin
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   onSandwichStolen:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 392248315}
+        m_TargetAssemblyTypeName: GameAudio, Assembly-CSharp
+        m_MethodName: PlayLose
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1460047520
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1586,6 +1732,24 @@ MonoBehaviour:
   feathersPrefab: {fileID: 7095192495396013245, guid: 799252f1334a7cd49a7a2efc5497ec27, type: 3}
   feathersOffsetTowardPlayer: 0.1
   feathersLifetime: 3
+  onPunchThrown:
+    m_PersistentCalls:
+      m_Calls: []
+  onPunchLanded:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 392248315}
+        m_TargetAssemblyTypeName: GameAudio, Assembly-CSharp
+        m_MethodName: PlayPunch
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   punchLabel: {fileID: 1567612935}
   requireSideLook: 1
 --- !u!1 &1510075141
@@ -3409,3 +3573,4 @@ SceneRoots:
   - {fileID: 1198025697}
   - {fileID: 6697477974475270720}
   - {fileID: 500154722}
+  - {fileID: 392248316}
