@@ -2,15 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>
-/// Spawns seagulls from the left and right, scales difficulty with the level,
-/// handles punching (left mouse), and drives the warning icons and punch prompt.
-///
-/// The arm spawns at Arm Origin, flies to the target gull's transform and back, then
-/// despawns. Everything is world space -- no camera-local conversion.
-///
-/// Attach to an empty GameObject in the scene.
-/// </summary>
 public class SeagullSystem : MonoBehaviour
 {
     [Header("References")]
@@ -30,6 +21,11 @@ public class SeagullSystem : MonoBehaviour
     [Tooltip("Gain one extra concurrent gull every N levels. 0 = never.")]
     public int extraGullEveryNLevels = 3;
 
+    [Header("Spawn Sound")]
+    [Tooltip("Played at the spawn point when a gull appears. Positional, so you hear which side.")]
+    public AudioClip spawnSound;
+    [Range(0f, 1f)] public float spawnSoundVolume = 1f;
+
     [Header("Difficulty")]
     public float hoverDuration = 1.8f;
     public float hoverReductionPerLevel = 0.12f;
@@ -38,18 +34,15 @@ public class SeagullSystem : MonoBehaviour
     [Header("Arms")]
     public GameObject leftArmPrefab;
     public GameObject rightArmPrefab;
-    [Tooltip("Empty GameObject the arm spawns at. Make it a child of the camera, scale (1,1,1).")]
+    [Tooltip("Fallback start point, used when a side-specific origin is missing.")]
     public Transform armOrigin;
-    [Tooltip("Optional. Separate start point for the left arm. Falls back to Arm Origin.")]
     public Transform leftArmOrigin;
-    [Tooltip("Optional. Separate start point for the right arm. Falls back to Arm Origin.")]
     public Transform rightArmOrigin;
     [Tooltip("Cap on travel distance so the arm can't stretch across the map.")]
     public float maxReach = 3f;
 
     [Header("Arm Orientation")]
-    [Tooltip("Spin the hand around the punch axis until the back of the hand faces up. " +
-             "The only value you should need to touch.")]
+    [Tooltip("Spin the hand around the punch axis until the back of the hand faces up.")]
     public float leftArmRoll = 0f;
     public float rightArmRoll = 0f;
     [Tooltip("Rescale the arm to this length in metres, whatever scale the prefab was saved at.")]
@@ -66,16 +59,19 @@ public class SeagullSystem : MonoBehaviour
     public float punchRange = 3.5f;
     [Range(5f, 90f)] public float punchAngle = 45f;
 
-    [Header("Warning Icons")]
-    public GameObject leftWarningIcon;
-    public GameObject rightWarningIcon;
-    public float warningDistance = 8f;
-    public bool hideWarningWhenFacing = true;
-    public float warningPulseSpeed = 3f;
-    public float warningPulseAmount = 0.15f;
+    [Header("Punch Impact")]
+    [Tooltip("Feather burst prefab. Spawned at the gull when a punch connects.")]
+    public GameObject feathersPrefab;
+    [Tooltip("Nudge the burst toward the player so it isn't buried inside the model.")]
+    public float feathersOffsetTowardPlayer = 0.1f;
+    [Tooltip("Fallback lifetime, used only if the prefab has no ParticleSystem to measure.")]
+    public float feathersLifetime = 3f;
 
-    [Header("Punch Prompt")]
+    [Header("Punch Indicator")]
+    [Tooltip("Screen-space object shown while a gull is punchable. Hidden otherwise.")]
     public GameObject punchLabel;
+    [Tooltip("Only show it while looking left or right, never while facing the sandwich.")]
+    public bool requireSideLook = true;
 
     public int ActiveGullCount => activeGulls.Count;
     public bool CanPunch => arm == null && cooldownTimer <= 0f;
@@ -88,14 +84,11 @@ public class SeagullSystem : MonoBehaviour
     private readonly Dictionary<GameObject, ArmFit> armFits = new Dictionary<GameObject, ArmFit>();
 
     private Transform arm;
-    private Vector3 punchStart;      // world
-    private Vector3 punchEnd;        // world
-    private Quaternion punchRotation; // world, fixed for the whole swing
+    private Vector3 punchStart;
+    private Vector3 punchEnd;
+    private Quaternion punchRotation;
     private float punchTimer;
     private float cooldownTimer;
-
-    private Vector3 leftIconBaseScale = Vector3.one;
-    private Vector3 rightIconBaseScale = Vector3.one;
 
     private void Start()
     {
@@ -110,11 +103,8 @@ public class SeagullSystem : MonoBehaviour
             Debug.LogWarning("SeagullSystem: assign Left Spawn and Right Spawn.", this);
         if (leftArmPrefab == null || rightArmPrefab == null)
             Debug.LogWarning("SeagullSystem: assign both arm prefabs.", this);
-        if (armOrigin == null && leftArmOrigin == null && rightArmOrigin == null)
-            Debug.LogWarning("SeagullSystem: assign Arm Origin.", this);
-
-        if (leftWarningIcon != null) leftIconBaseScale = leftWarningIcon.transform.localScale;
-        if (rightWarningIcon != null) rightIconBaseScale = rightWarningIcon.transform.localScale;
+        if (armOrigin == null && (leftArmOrigin == null || rightArmOrigin == null))
+            Debug.LogWarning("SeagullSystem: assign arm origins.", this);
 
         ResetForLevel();
     }
@@ -131,13 +121,11 @@ public class SeagullSystem : MonoBehaviour
         {
             TickSpawning();
             TickPunchInput();
-            TickPrompts();
+            TickPunchIndicator();
         }
         else
         {
             SetActive(punchLabel, false);
-            SetActive(leftWarningIcon, false);
-            SetActive(rightWarningIcon, false);
         }
 
         TickArm();
@@ -155,10 +143,7 @@ public class SeagullSystem : MonoBehaviour
         cooldownTimer = 0f;
 
         DespawnArm();
-
         SetActive(punchLabel, false);
-        SetActive(leftWarningIcon, false);
-        SetActive(rightWarningIcon, false);
     }
 
     // ---- Difficulty curves ----
@@ -201,6 +186,9 @@ public class SeagullSystem : MonoBehaviour
 
         gull.Init(eater, CurrentHoverDuration, fromLeft);
         activeGulls.Add(gull);
+
+        if (spawnSound != null)
+            AudioSource.PlayClipAtPoint(spawnSound, spawn.position, spawnSoundVolume);
     }
 
     private void PruneDeadGulls()
@@ -209,54 +197,26 @@ public class SeagullSystem : MonoBehaviour
             if (activeGulls[i] == null) activeGulls.RemoveAt(i);
     }
 
-    // ---- Warning icons and punch prompt ----
+    // ---- Punch indicator ----
 
-    private void TickPrompts()
+    private void TickPunchIndicator()
     {
-        bool warnLeft = false;
-        bool warnRight = false;
-
-        if (playerCamera != null)
-        {
-            Vector3 origin = playerCamera.transform.position;
-
-            foreach (Seagull gull in activeGulls)
-            {
-                if (gull == null || !gull.IsPunchable) continue;
-                if (Vector3.Distance(origin, gull.transform.position) > warningDistance) continue;
-
-                if (gull.SpawnedOnLeft) warnLeft = true;
-                else warnRight = true;
-            }
-        }
-
-        if (hideWarningWhenFacing && lookController != null)
-        {
-            if (lookController.CurrentState == SandwichLookController.LookState.Left)
-                warnLeft = false;
-            else if (lookController.CurrentState == SandwichLookController.LookState.Right)
-                warnRight = false;
-        }
-
-        ShowWarning(leftWarningIcon, leftIconBaseScale, warnLeft);
-        ShowWarning(rightWarningIcon, rightIconBaseScale, warnRight);
-
-        if (punchLabel != null)
-            SetActive(punchLabel, FindPunchableTarget() != null);
+        if (punchLabel == null) return;
+        SetActive(punchLabel, HasPunchableTarget());
     }
 
-    private void ShowWarning(GameObject icon, Vector3 baseScale, bool show)
+    private bool HasPunchableTarget()
     {
-        if (icon == null) return;
+        if (requireSideLook && !IsLookingSideways()) return false;
+        return FindPunchableTarget() != null;
+    }
 
-        SetActive(icon, show);
-        if (!show) return;
+    private bool IsLookingSideways()
+    {
+        if (lookController == null) return true;
 
-        float pulse = 1f;
-        if (warningPulseSpeed > 0f && warningPulseAmount > 0f)
-            pulse = 1f + Mathf.Abs(Mathf.Sin(Time.time * Mathf.PI * warningPulseSpeed)) * warningPulseAmount;
-
-        icon.transform.localScale = baseScale * pulse;
+        return lookController.CurrentState == SandwichLookController.LookState.Left ||
+               lookController.CurrentState == SandwichLookController.LookState.Right;
     }
 
     // ---- Punch input ----
@@ -273,7 +233,10 @@ public class SeagullSystem : MonoBehaviour
         ThrowPunch(UseLeftArm(), target);
 
         if (target != null && playerCamera != null)
+        {
             target.Punch(playerCamera.transform.position);
+            SpawnFeathers(target.transform.position);
+        }
     }
 
     private Seagull FindPunchableTarget()
@@ -311,6 +274,39 @@ public class SeagullSystem : MonoBehaviour
                lookController.CurrentState == SandwichLookController.LookState.Left;
     }
 
+    // ---- Feather burst ----
+
+    private void SpawnFeathers(Vector3 gullPosition)
+    {
+        if (feathersPrefab == null) return;
+
+        Vector3 position = gullPosition;
+
+        if (playerCamera != null && feathersOffsetTowardPlayer != 0f)
+        {
+            Vector3 toPlayer = playerCamera.transform.position - gullPosition;
+            if (toPlayer.sqrMagnitude > 0.0001f)
+                position += toPlayer.normalized * feathersOffsetTowardPlayer;
+        }
+
+        GameObject fx = Instantiate(feathersPrefab, position, Quaternion.identity);
+
+        // Unparented, so it stays where the hit happened instead of riding the gull away.
+        float life = feathersLifetime;
+
+        ParticleSystem ps = fx.GetComponent<ParticleSystem>();
+        if (ps == null) ps = fx.GetComponentInChildren<ParticleSystem>();
+
+        if (ps != null)
+        {
+            ps.Play(true);
+            ParticleSystem.MainModule main = ps.main;
+            life = main.duration + main.startLifetime.constantMax;
+        }
+
+        Destroy(fx, Mathf.Max(life, 0.1f));
+    }
+
     // ---- Arm ----
 
     private Transform OriginFor(bool left)
@@ -321,7 +317,7 @@ public class SeagullSystem : MonoBehaviour
 
     private void ThrowPunch(bool left, Seagull target)
     {
-        DespawnArm(); // never leave one behind
+        DespawnArm();
 
         GameObject prefab = left ? leftArmPrefab : rightArmPrefab;
         if (prefab == null) prefab = left ? rightArmPrefab : leftArmPrefab;
@@ -331,7 +327,6 @@ public class SeagullSystem : MonoBehaviour
 
         punchStart = origin.position;
 
-        // Where it's punching to. No target = straight ahead from the origin.
         Vector3 toTarget = target != null
             ? target.transform.position - punchStart
             : origin.forward * Mathf.Min(1f, maxReach);
@@ -342,7 +337,6 @@ public class SeagullSystem : MonoBehaviour
 
         ArmFit fit = GetArmFit(prefab);
 
-        // Fist points down the travel direction, back of the hand toward the sky.
         Vector3 aim = toTarget.normalized;
         Vector3 up = Mathf.Abs(Vector3.Dot(aim, Vector3.up)) > 0.99f ? Vector3.forward : Vector3.up;
 
@@ -355,7 +349,6 @@ public class SeagullSystem : MonoBehaviour
 
         if (autoFitArmLength) arm.localScale = Vector3.one * fit.scale;
 
-        // On screen for a quarter second -- it doesn't need to be in the shadow map.
         foreach (Renderer r in go.GetComponentsInChildren<Renderer>())
             r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
